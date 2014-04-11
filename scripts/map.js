@@ -18,7 +18,7 @@
                         'featureType': 'landscape.natural.landcover',
                         'stylers': [
                               { 'visibility': 'on' }, 
-                              { 'color': '#ff7905' }
+                              { 'color': '#f0eae5' }
                         ]
                   }, 
                   {
@@ -137,6 +137,7 @@
                   }, getPauseDuration(i));
             });            
 
+            createLayer();
             bindButtons();
       }
 
@@ -164,6 +165,31 @@
 
             google.maps.event.addListener(marker, 'mouseout', function() {
                   resolveInfoBox(this).close(map);
+            });
+      }
+
+      function createLayer() {
+            // Natural earth data from :-
+            // https://www.google.com/fusiontables/DataSource?dsrcid=423734#rows:id=1
+            new google.maps.FusionTablesLayer({
+                  map: map,
+                  heatmap: { enabled: false },
+                  suppressInfoWindows: true,
+                  query: {
+                        select: 'kml_4326',
+                        from: '424206', 
+                        /*where: 'iso_a3 not in (\x27AFG\x27, \x27MEX\x27, \x27USA\x27, \x27JPN\x27)'*/
+                        where: "name_sort not in ('Guyana', 'Suriname', 'Greenland', 'Western Sahara', 'Mauritania', 'Mali', 'Senegal', 'Guinea-Bissau', 'Guinea', 'The Gambia', 'Sierra Leone', 'Liberia', 'Niger', 'Chad', 'Namibia', 'Botswana', 'Ethopia', 'Somalia', 'Madagascar', 'Uzbekistan', 'Turkmenistan', 'Tajikistan', 'Kyrgyzstan', 'Afghanistan', 'Mongolia', 'Myanmar', 'Laos', 'Cambodia', 'Papua New Guinea')"
+                  },
+                  styles: [{
+                        polygonOptions: {
+                              fillColor: '#f2b37a',
+                              fillOpacity: 0.5,
+                              strokeColor: '#f7f7f7',
+                              strokeWeight: 0.5,
+                              strokeOpacity: 0.5    
+                        }
+                  }]
             });
       }
 
