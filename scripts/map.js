@@ -56,73 +56,67 @@
 
       // Defines the order in which markers are created
       var locationTypes = [
-            'head',
-            'regional',
-            'international',
-            'alliance'
+            { id: 'head', color: 'a8ccbe' },
+            { id: 'regional', color: 'fdc617' },
+            { id: 'international', color: 'b65a19' },
+            { id: 'alliance', color: 'ee7206' },
+            { id: 'gis', color: '2a4078' }
       ];
-
-      var colors = {
-            head: 'a8ccbe',
-            regional: 'fdc617',
-            international: 'b65a19',
-            alliance: 'ee7206'
-      };
 
       var locations = [
             { 
                   name: 'London',
-                  position: new google.maps.LatLng(51.513704, -0.132957),
-                  type: 'head'
+                  type: 'head',
+                  position: new google.maps.LatLng(51.513704, -0.132957)
             },
             { 
                   name: 'Liverpool',
-                  position: new google.maps.LatLng(53.405979, -2.995882),
-                  type: 'regional'
+                  type: 'regional',
+                  position: new google.maps.LatLng(53.405979, -2.995882)
             },
             { 
                   name: 'Manchester',
-                  position: new google.maps.LatLng(53.472816, -2.246508),
-                  type: 'regional'
+                  type: 'regional',
+                  position: new google.maps.LatLng(53.472816, -2.246508)
             },
             { 
                   name: 'Brussels',
-                  position: new google.maps.LatLng(50.823572, 4.376693),
-                  type: 'regional'
+                  type: 'regional',
+                  position: new google.maps.LatLng(50.823572, 4.376693)
             },
             { 
                   name: 'Chicago',
-                  position: new google.maps.LatLng(41.878114, -87.629798),
-                  type: 'international'
+                  type: 'international',
+                  position: new google.maps.LatLng(41.878114, -87.629798)
             },
             { 
                   name: 'New York',
-                  position: new google.maps.LatLng(40.714353, -74.005973),
-                  type: 'international'
+                  type: 'international',
+                  position: new google.maps.LatLng(40.714353, -74.005973)
             },
             { 
                   name: 'Singapore',
-                  position: new google.maps.LatLng(1.290988, 103.847302),
-                  type: 'international'
+                  type: 'international',
+                  position: new google.maps.LatLng(1.290988, 103.847302)
             },
             { 
                   name: 'Shanghai',
-                  position: new google.maps.LatLng(31.230416, 121.473701),
-                  type: 'international'
+                  type: 'international',
+                  position: new google.maps.LatLng(31.230416, 121.473701)
             },
             { 
                   name: 'Tokyo',
-                  position: new google.maps.LatLng(35.689487, 139.691706),
-                  type: 'alliance'
+                  type: 'alliance',
+                  position: new google.maps.LatLng(35.689487, 139.691706)
             },
             { 
                   name: 'Sydney',
-                  position: new google.maps.LatLng(-33.867487, 151.206990),
-                  type: 'alliance'
-            },
+                  type: 'alliance',
+                  position: new google.maps.LatLng(-33.867487, 151.206990)
+            }
       ];
 
-      var map, markers = [], introDuration = 7500;
+      var map, markers = [], layer, introDuration = 7500, highlightDuration = 1000;
       var $amazeMap = $('.amaze-map');
 
       function initialize() {
@@ -133,9 +127,12 @@
                   // Group the locations by type and stagger creation
                   setTimeout(function() {
                         showButton(type);
-                        createMarkers(getLocationsByType(type));
-                  }, getPauseDuration(i));
-            });            
+                        if (i < locationTypes.length - 1) {
+                              createMarkers(getLocationsByType(type.id));
+                        }
+                  }, getStaggerTime(i, locationTypes.length, introDuration, true));
+                  console.log(getStaggerTime(i, locationTypes.length, introDuration, true));
+            });        
 
             createLayer();
             bindButtons();
@@ -171,19 +168,20 @@
       function createLayer() {
             // Natural earth data from :-
             // https://www.google.com/fusiontables/DataSource?dsrcid=423734#rows:id=1
-            new google.maps.FusionTablesLayer({
-                  map: map,
+            layer = new google.maps.FusionTablesLayer({
                   heatmap: { enabled: false },
                   suppressInfoWindows: true,
                   query: {
                         select: 'kml_4326',
                         from: '424206', 
-                        /*where: 'iso_a3 not in (\x27AFG\x27, \x27MEX\x27, \x27USA\x27, \x27JPN\x27)'*/
+                        /* I got bored doing this so the exclude list is incomplete */
                         where: "name_sort not in ('Guyana', 'Suriname', 'Greenland', 'Western Sahara', 'Mauritania', 'Mali', 'Senegal', 'Guinea-Bissau', 'Guinea', 'The Gambia', 'Sierra Leone', 'Liberia', 'Niger', 'Chad', 'Namibia', 'Botswana', 'Ethopia', 'Somalia', 'Madagascar', 'Uzbekistan', 'Turkmenistan', 'Tajikistan', 'Kyrgyzstan', 'Afghanistan', 'Mongolia', 'Myanmar', 'Laos', 'Cambodia', 'Papua New Guinea')"
                   },
                   styles: [{
                         polygonOptions: {
-                              fillColor: '#f2b37a',
+                              // If fill color is the same as the button, we could
+                              // get it from the colors array.
+                              fillColor: '#FF7900',
                               fillOpacity: 0.5,
                               strokeColor: '#f7f7f7',
                               strokeWeight: 0.5,
@@ -195,16 +193,20 @@
 
       function bindButtons() {
             $amazeMap.find('li').on('click', function() {
-                  var $this = $(this).toggleClass('highlighted');
-                  highlightMarkers(
-                        getMarkersByType(this.id), 
-                        $this.hasClass('highlighted')
-                  );
+                  var $this = $(this).toggleClass('highlighted'),
+                        show = $this.hasClass('highlighted');
+                  if (!$this.is(':last-child')) {
+                        highlightMarkers(getMarkersByType(this.id), show);
+                  } else {
+                        showLayer(show);
+                  }
             });
       }
 
       function showButton(type) {
-            $amazeMap.find('.' + type).addClass('show');
+            $amazeMap.find('#' + type.id)
+                  .css('background-color', '#' + type.color)
+                  .addClass('show');
       }
 
       function highlightMarkers(markers, highlight) {
@@ -213,9 +215,15 @@
                   google.maps.Animation.BOUNCE :
                   null;
 
-            _.forEach(markers, function(marker) {
-                  marker.marker.setAnimation(animation);
+            _.forEach(markers, function(marker, i) {
+                  setTimeout(function() {
+                        marker.marker.setAnimation(animation);
+                  }, getStaggerTime(i, markers.length, highlightDuration));
             });
+      }
+
+      function showLayer(show) {
+            layer.setMap(show ? map : null);
       }
 
       function getMarker(location) {
@@ -229,7 +237,7 @@
       }
 
       function getMarkerPin(location) {
-            var color = colors[location.type];
+            var color = getColorByType(location.type);
             return new google.maps.MarkerImage(
                   'http://chart.apis.google.com/chart?chst=d_map_pin_letter&chld=%E2%80%A2|' + color,
                   null, /* size is determined at runtime */
@@ -263,15 +271,20 @@
       }
 
       function getInfoBoxContent(location) {
-            return '<div class="infobox ' +
-                  location.type + '">' +
-                  location.name +
-                  '</div>'; 
+
+            var color = getColorByType(location.type);
+
+            return $('<div>' + location.name + '</div>')
+                        .css('background-color', '#' + color)
+                        .addClass('infobox')[0];
       }
 
-      function getPauseDuration(i) {
-            // Use sine to give a nice easing on the staggered marker creation
-            return Math.sin((i + 1) * (Math.PI / 2) / locationTypes.length) * introDuration;
+      function getStaggerTime(i, count, duration, initialPause) {
+
+            if (initialPause) { i = i + 1; }
+
+            // Sine gives a nice easing on the staggered marker creation
+            return Math.sin(i * (Math.PI / 2) / count) * duration;
       }
 
       function getLocationsByType(type) {
@@ -284,6 +297,10 @@
 
       function getByType(type, collection) {
             return _.where(collection, { type: type });
+      }
+
+      function getColorByType(type) {
+            return _.findWhere(locationTypes, { id: type }).color;
       }
 
       // Initialize when map is ready

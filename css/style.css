@@ -39,11 +39,6 @@ body { height: 100%; margin: 0; padding: 0 }
 .amaze-map li.show { opacity: 1; }
 .amaze-map li.highlighted { opacity: 0.25; }
 
-.amaze-map .head { background-color: #a8ccbe; }
-.amaze-map .regional { background-color: #fdc617; }
-.amaze-map .international { background-color: #b65a19; }
-.amaze-map .alliance { background-color: #ee7206; }
-
 
 /* custom info box */
 /*.infobox-wrapper {
@@ -53,7 +48,6 @@ body { height: 100%; margin: 0; padding: 0 }
 .infobox {
     /*border: 2px solid black;*/
     margin-top: 8px;
-    background: #a8ccbe;
     font-size: 20px;
     padding: .5em 1em;
     text-align: center;
