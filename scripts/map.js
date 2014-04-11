@@ -18,7 +18,7 @@
                         'featureType': 'landscape.natural.landcover',
                         'stylers': [
                               { 'visibility': 'on' }, 
-                              { 'color': '#f0eae5' }
+                              { 'color': '#f7af72' }
                         ]
                   }, 
                   {
